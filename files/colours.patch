@@ -1,0 +1,14 @@
+--- colours.css.orig	2019-09-08 19:53:52.000000000 +0000
++++ colours.css	2019-12-09 15:12:58.722217089 +0000
+@@ -149,7 +149,9 @@
+ }
+ 
+ .site_logo {
+-	background-image: url("./images/site_logo.gif");
++        background-image: url("./images/centos.png");
++        padding-left: 100px;
++        padding-top: 29px;
+ }
+ 
+ /* Horizontal lists
+

@@ -1,1 +1,26 @@
 # Defaults variables for role phpbb
+# Worth noting that it's just deploying fresh phpbb, not configuring it
+# phpbb can't be automated fully as it calls .php when /install is called
+# but at least most of the settings are installed by ansible
+
+# DB settings
+use_remote_mysql_host: False
+mysql_host: localhost
+phpbb_db_name: phpbb
+phpbb_db_user: phpbb
+phpbb_db_pass: ckgMdOG5Wohkm7Mb
+
+# phpBB settings
+# Which release, major+minor concatenation
+phpbb_major_release: 3.2
+phpbb_minor_release: 8
+
+# Used for tls and vhost
+phpbb_httpd_tls: False
+phpbb_httpd_hostname: "{{ inventory_hostname }}"
+# Where phpbb app will be located
+phpbb_httpd_dir: /var/www/phpBB
+
+
+
+

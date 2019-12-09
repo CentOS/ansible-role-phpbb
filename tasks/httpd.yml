@@ -1,0 +1,40 @@
+- name: Configuring httpd
+  import_role:
+    name: httpd
+  vars:
+    httpd_tls: "{{ phpbb_httpd_tls }}"
+
+- name: Configuring httpd vhost
+  template:
+    src: 95_phpbb_vhost.conf.j2
+    dest: /etc/httpd/conf.d/95_phpbb_vhost.conf
+  notify:
+    - restart_httpd
+
+- name: Configuring https
+  template:
+    src: "{{ item }}.j2"
+    dest: "/etc/httpd/conf.d/{{ item }}"
+  notify:
+    - restart_httpd
+  with_items:
+    - ssl-phpbb-vhost.conf
+  when: phpbb_httpd_tls  
+   
+- import_role:
+    name: httpd
+    tasks_from: pki-tls
+  vars:
+    pki_hostname: "{{ phpbb_httpd_hostname }}"
+  notify:
+    - restart_httpd
+  tags:
+    - tls
+  when: phpbb_httpd_tls
+
+- name: Adding SCL php
+  include_role:
+    name: httpd
+    tasks_from: scl-php
+  tags:
+    - php

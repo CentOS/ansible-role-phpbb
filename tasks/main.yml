@@ -1,1 +1,105 @@
 # Defaults tasks for role phpbb
+
+- name: MySQL settings
+  include_tasks: mysql.yml
+
+- name: Selinux settings
+  include_tasks: selinux.yml
+
+- name: httpd settings
+  include_tasks: httpd.yml
+
+- name: Ensuring we have local directory for instance
+  file:
+    path: "{{ phpbb_httpd_dir }}"
+    state: directory
+
+- name: Deploy phpBB
+  unarchive:
+    src: "https://download.phpbb.com/pub/release/{{ phpbb_major_release }}/{{ phpbb_major_release }}.{{ phpbb_minor_release }}/phpBB-{{ phpbb_major_release }}.{{ phpbb_minor_release }}.tar.bz2"
+    remote_src: yes
+    dest: "{{ phpbb_httpd_dir }}"
+    creates: "{{ phpbb_httpd_dir }}/deployed.{{ phpbb_major_release }}.{{ phpbb_minor_release }}"
+    extra_opts:
+      - --strip-components=1
+  tags:
+    - deploy
+
+- name: Mark phpbb as deployed
+  template:
+    src: deployed.j2
+    dest: "{{ item }}"
+  with_items:  
+    - "{{ phpbb_httpd_dir }}/deployed.{{ phpbb_major_release }}.{{ phpbb_minor_release }}"
+    - "{{ phpbb_httpd_dir }}/deployed.current"
+  tags:
+    - deploy
+
+- name: Empty first config.php
+  file:
+    path: "{{ phpbb_httpd_dir }}/config.php"
+    state: touch
+    owner: apache
+    group: apache
+    setype: httpd_sys_rw_content_t
+  tags:
+    - config
+
+#- name: Configuring phpbb app
+#  template:
+#    src: config.php.j2
+#    dest: "{{ phpbb_httpd_dir }}/config.php"
+#    owner: apache
+#    group: apache
+#    setype: httpd_sys_rw_content_t
+#  tags:
+#    - config
+
+- name: Correct owner and selinux context 
+  file:
+    path: "{{ phpbb_httpd_dir }}/{{ item }}"
+    state: directory
+    owner: apache
+    group: apache
+    recurse: True
+    setype: httpd_sys_rw_content_t
+  with_items:
+    - cache
+    - files
+    - store
+    - images/avatars/upload/
+  tags:
+    - permissions
+
+- name: Distributing logo
+  copy:
+    src: centos.png
+    dest: "{{ phpbb_httpd_dir }}/styles/prosilver/theme/images/centos.png"
+  tags:
+    - theme
+
+- name: Patching phpbb prosilver theme for logo
+  patch:
+    src: "{{ item }}"
+    basedir: "{{ phpbb_httpd_dir }}/styles/prosilver/theme/"
+  with_items:
+    - colours.patch
+  tags:
+    - theme
+
+
+- include_role:
+    name: postfix
+    tasks_from: relay_to
+  vars:
+    postfix_relay_to: True 
+
+- name: Ensuring backup user and jobs
+  include_role:
+    name: centos-backup
+    tasks_from: client
+  vars:
+    - centos_role: phpbb
+    - role_backup_folders:
+        - "{{ phpbb_httpd_dir }}"  
+  
