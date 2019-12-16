@@ -9,6 +9,11 @@
 - name: httpd settings
   include_tasks: httpd.yml
 
+- name: Installing tools needed to deploy
+  yum:
+    name: ['unzip', 'patch', 'bzip2']
+    state: installed
+
 - name: Ensuring we have local directory for instance
   file:
     path: "{{ phpbb_httpd_dir }}"
