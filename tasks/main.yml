@@ -8,6 +8,8 @@
 
 - name: httpd settings
   include_tasks: httpd.yml
+  tags:
+    - tls
 
 - name: Installing tools needed to deploy
   yum:
