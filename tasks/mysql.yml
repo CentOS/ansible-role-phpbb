@@ -1,20 +1,19 @@
 # Defaults tasks for role phpbb
 
-- name: Creating mandatory DB
-  include_role:
-    name: mysql
-    tasks_from: db_remote
-  vars:
-    db_user: "{{ phpbb_db_user }}"
-    db_pass: "{{ phpbb_db_pass }}"
-    db_name: "{{ phpbb_db_name }}"
-  when: use_remote_mysql_host
-  delegate_to: "{{ mysql_host }}"
+- block:
+    - name: Creating mandatory DB
+      include_role:
+        name: mysql
+        tasks_from: db_remote
+      vars:
+        db_user: "{{ phpbb_db_user }}"
+        db_pass: "{{ phpbb_db_pass }}"
+        db_name: "{{ phpbb_db_name }}"
 
-- name: Opening iptables if needed on remote mysql host
-  include_role:
-    name: iptables
-    tasks_from: remote-mysqld
+    - name: Opening iptables if needed on remote mysql host
+      include_role:
+        name: iptables
+        tasks_from: remote-mysqld
   when: use_remote_mysql_host
   delegate_to: "{{ mysql_host }}"
 
