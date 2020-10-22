@@ -1,0 +1,42 @@
+# This sub-task has to be called through ad-hoc task, but using it here to keep code in role
+# It will use vars prompt to ask which target release to update to and compare to local fact (deployed version)
+# Download then the bump version and extract it. Last manual step is just to visit site to confirm update
+# Then just reflect in inventory also updated version
+
+- name: Downloading/applying phpbb update from version {{ ansible_local.phpbb.phpbb.deployed_version }} to {{ phpbb_target_version }}
+  unarchive:
+    src: "https://download.phpbb.com/pub/release/{{ phpbb_major_release }}/{{ phpbb_target_version }}/phpBB-{{ ansible_local.phpbb.phpbb.deployed_version }}_to_{{ phpbb_target_version }}.tar.bz2"
+    remote_src: yes
+    dest: "{{ phpbb_httpd_dir }}"
+
+- name: Correct owner and selinux context
+  file:
+    path: "{{ phpbb_httpd_dir }}/{{ item }}"
+    state: directory
+    owner: apache
+    group: apache
+    recurse: True
+    setype: httpd_sys_rw_content_t
+  with_items:
+    - cache
+    - files
+    - store
+    - images/avatars/upload/
+  tags:
+    - permissions
+
+- name: Mark phpbb {{ phpbb_target_version }} installed
+  file:
+    state: touch
+    path: "{{ phpbb_httpd_dir }}/deployed.{{ phpbb_target_version }}"
+  tags:
+    - deploy
+    
+- name: Pausing for manual step
+  pause:
+    prompt: "Please now visit https://{{ phpbb_httpd_hostname }}/install/app.php for db update and press a key"
+
+- name: Removing now install folder after update
+  file:
+    path: "{{ phpbb_httpd_dir }}/install"
+    state: absent

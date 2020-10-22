@@ -29,6 +29,7 @@
     creates: "{{ phpbb_httpd_dir }}/deployed.{{ phpbb_major_release }}.{{ phpbb_minor_release }}"
     extra_opts:
       - --strip-components=1
+  register: phpbb_init    
   tags:
     - deploy
 
@@ -41,6 +42,21 @@
     - "{{ phpbb_httpd_dir }}/deployed.current"
   tags:
     - deploy
+
+- name: Declaring phpbb facts
+  template:
+    src: phpbb.fact.j2
+    dest: /etc/ansible/facts.d/phpbb.fact
+  register: phpbb_fact    
+  tags:
+    - facts
+
+- name: Reloading facts if needed
+  setup:
+    filter: ansible_local
+  when: phpbb_fact is changed
+  tags:
+    - facts
 
 - name: Empty first config.php
   file:
@@ -91,6 +107,7 @@
     basedir: "{{ phpbb_httpd_dir }}/styles/prosilver/theme/"
   with_items:
     - colours.patch
+  when: phpbb_init is changed  
   tags:
     - theme
 

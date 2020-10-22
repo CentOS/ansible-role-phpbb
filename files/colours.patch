@@ -6,8 +6,8 @@
  .site_logo {
 -        background-image: url("./images/site_logo.gif");
 +        background-image: url("./images/centos.png");
-+	padding-left: 100px;
-+	padding-top: 29px;
++	       padding-left: 100px;
++	       padding-top: 29px;
  }
  
  /* Horizontal lists
