@@ -107,7 +107,9 @@
     basedir: "{{ phpbb_httpd_dir }}/styles/prosilver/theme/"
   with_items:
     - colours.patch
-  when: phpbb_init is changed  
+  when:
+    - phpbb_init is defined
+    - phpbb_init is changed
   tags:
     - theme
 
